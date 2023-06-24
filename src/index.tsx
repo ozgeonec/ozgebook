@@ -1,33 +1,29 @@
+
+
+import React from "react";
+import * as esbuild from 'esbuild-wasm';
+import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import {useState, useEffect, useRef} from 'react';
-import * as esbuild from 'esbuild-wasm';
-import {readFile} from "fs";
+import { unpkgPathPlugin } from './plugins/unpkg-path-plugin';
 
 
 const App = () => {
-
     const ref = useRef<any>();
     const [input, setInput] = useState('');
     const [code, setCode] = useState('');
 
 
-    const startService = async () => {
-
-        ref.current = await esbuild.initialize({
-            worker: true,
-            wasmURL: '/esbuild.wasm'
-        });
-        ref.current.transform(input,{
-            loader:'jsx'
-        });
-
-    };
 
     useEffect(() => {
-
+        // This ugly code is to avoid calling initialize() more than once
         try {
-            esbuild.build({});
+            esbuild.build({
+                entryPoints: ['index.js'],
+                bundle: true,
+                write: false,
+                plugins: [unpkgPathPlugin()]
+            });
         } catch (error) {
             if (error instanceof Error && error.message.includes('initialize')) {
                 esbuild.initialize({
@@ -41,31 +37,61 @@ const App = () => {
     }, []);
 
     const onClick = () => {
-
-        console.log(ref.current)
-        esbuild
-            .transform(input, {
-                loader: 'jsx',
-                target: 'es2015',
-            })
-            .then((result) => {
-                setCode(result.code);
+        esbuild.build({
+            entryPoints: ['index.js'],
+            bundle: true,
+            write: false,
+            plugins: [unpkgPathPlugin()]
+        })
+            .then((result:any) => {
                 console.log(result)
+                setCode(result.outputFiles[0].text);
             });
     };
-
-    return <div >
-        <textarea onChange={(e) => setInput(e.target.value)}></textarea>
+    // const startService = async () => {
+    //     if (!window.isEsbuildRunning) {
+    //         await esbuild.initialize({Ï
+    //             worker: true,
+    //             wasmURL: '/esbuild.wasm'
+    //         })
+    //     }
+    //     window.isEsbuildRunning = true;
+    //     ref.current = true
+    // }
+    //
+    // useEffect(() => {
+    //     startService()
+    // }, [])
+    //
+    // const onClick = async () => {
+    //     if (!ref.current) {
+    //         return;
+    //     }
+    //     const result = await esbuild.build({
+    //         entryPoints: ['index.js'],
+    //         bundle: true,
+    //         write: false,
+    //         plugins: [unpkgPathPlugin()]
+    //     })
+    //     console.log(result);
+    //     setCode(result)
+    // }
+    return (
         <div>
-            <button onClick={onClick}>
-                Submit
-            </button>
+      <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+      ></textarea>
+            {/*<div>hi</div>*/}
+            <div>
+                <button onClick={onClick}>Submit</button>
+            </div>
+            <pre>{code}</pre>
         </div>
-        <pre>{code}</pre>
-    </div>;
-}
-
+    );
+};
 
 const container = document.getElementById('root');
 const root = createRoot(container!); // createRoot(container!) if you use TypeScript
 root.render(<App />);
+// ReactDOM.render(<App />, document.querySelector('#root'));
