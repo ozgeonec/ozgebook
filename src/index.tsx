@@ -1,18 +1,14 @@
-
-
 import React from "react";
 import * as esbuild from 'esbuild-wasm';
-import { useState, useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
-import { createRoot } from 'react-dom/client';
-import { unpkgPathPlugin } from './plugins/unpkg-path-plugin';
+import {useState, useEffect, useRef} from 'react';
+import {createRoot} from 'react-dom/client';
+import {unpkgPathPlugin} from './plugins/unpkg-path-plugin';
 
 
 const App = () => {
     const ref = useRef<any>();
     const [input, setInput] = useState('');
     const [code, setCode] = useState('');
-
 
 
     useEffect(() => {
@@ -22,7 +18,7 @@ const App = () => {
                 entryPoints: ['index.js'],
                 bundle: true,
                 write: false,
-                plugins: [unpkgPathPlugin()]
+                plugins: [unpkgPathPlugin(input)]
             });
         } catch (error) {
             if (error instanceof Error && error.message.includes('initialize')) {
@@ -41,9 +37,9 @@ const App = () => {
             entryPoints: ['index.js'],
             bundle: true,
             write: false,
-            plugins: [unpkgPathPlugin()]
+            plugins: [unpkgPathPlugin(input)]
         })
-            .then((result:any) => {
+            .then((result: any) => {
                 console.log(result)
                 setCode(result.outputFiles[0].text);
             });
@@ -77,21 +73,18 @@ const App = () => {
     //     setCode(result)
     // }
     return (
-        <div>
-      <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-      ></textarea>
+        <>
+            <textarea value={input} onChange={(e) => setInput(e.target.value)}></textarea>
             {/*<div>hi</div>*/}
             <div>
                 <button onClick={onClick}>Submit</button>
             </div>
             <pre>{code}</pre>
-        </div>
+        </>
     );
 };
 
 const container = document.getElementById('root');
 const root = createRoot(container!); // createRoot(container!) if you use TypeScript
-root.render(<App />);
+root.render(<App/>);
 
