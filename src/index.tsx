@@ -3,6 +3,7 @@ import * as esbuild from 'esbuild-wasm';
 import {useState, useEffect, useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {unpkgPathPlugin} from './plugins/unpkg-path-plugin';
+import {fetchPlugin} from "./plugins/fetch-plugin";
 
 
 const App = () => {
@@ -18,7 +19,7 @@ const App = () => {
                 entryPoints: ['index.js'],
                 bundle: true,
                 write: false,
-                plugins: [unpkgPathPlugin(input)]
+                plugins: [unpkgPathPlugin(), fetchPlugin(input)]
             });
         } catch (error) {
             if (error instanceof Error && error.message.includes('initialize')) {
@@ -37,11 +38,18 @@ const App = () => {
             entryPoints: ['index.js'],
             bundle: true,
             write: false,
-            plugins: [unpkgPathPlugin(input)]
+            plugins: [unpkgPathPlugin(), fetchPlugin(input)]
         })
             .then((result: any) => {
                 console.log(result)
                 setCode(result.outputFiles[0].text);
+
+                try {
+                    eval(result.outputFiles[0].text);
+                } catch (err) {
+                    alert(err);
+                }
+
             });
     };
     // const startService = async () => {
