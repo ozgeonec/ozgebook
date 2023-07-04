@@ -7,13 +7,13 @@ import {fetchPlugin} from "./plugins/fetch-plugin";
 
 
 const App = () => {
-    const ref = useRef<any>();
+    // const ref = useRef<any>();
     const [input, setInput] = useState('');
     const [code, setCode] = useState('');
+    const iframe = useRef<any>();
 
 
     useEffect(() => {
-        // This ugly code is to avoid calling initialize() more than once
         try {
             esbuild.build({
                 entryPoints: ['index.js'],
@@ -39,55 +39,41 @@ const App = () => {
             bundle: true,
             write: false,
             plugins: [unpkgPathPlugin(), fetchPlugin(input)]
-        })
-            .then((result: any) => {
-                console.log(result)
-                setCode(result.outputFiles[0].text);
 
-                try {
-                    eval(result.outputFiles[0].text);
-                } catch (err) {
-                    alert(err);
-                }
+        }).then((result: any) => {
+            // setCode(result.outputFiles[0].text);
 
-            });
+            iframe.current.contentWindow.postMessage(result.outputFiles[0].text, '*');
+            // try {
+            //     eval(result.outputFiles[0].text);
+            // } catch (err) {
+            //     alert(err);
+            // }
+        });
     };
-    // const startService = async () => {
-    //     if (!window.isEsbuildRunning) {
-    //         await esbuild.initialize({Ï
-    //             worker: true,
-    //             wasmURL: '/esbuild.wasm'
-    //         })
-    //     }
-    //     window.isEsbuildRunning = true;
-    //     ref.current = true
-    // }
-    //
-    // useEffect(() => {
-    //     startService()
-    // }, [])
-    //
-    // const onClick = async () => {
-    //     if (!ref.current) {
-    //         return;
-    //     }
-    //     const result = await esbuild.build({
-    //         entryPoints: ['index.js'],
-    //         bundle: true,
-    //         write: false,
-    //         plugins: [unpkgPathPlugin()]
-    //     })
-    //     console.log(result);
-    //     setCode(result)
-    // }
+
+    const html = `
+       <html>
+       <head></head>
+       <body>
+       <div id="root"></div>
+       <script>
+       window.addEventListener('message',(event)=>{
+           eval(event.data)
+       },false)
+        </script>
+        </body>
+        </html>
+    `;
+
     return (
         <>
             <textarea value={input} onChange={(e) => setInput(e.target.value)}></textarea>
-            {/*<div>hi</div>*/}
             <div>
                 <button onClick={onClick}>Submit</button>
             </div>
             <pre>{code}</pre>
+            <iframe ref={iframe} sandbox="allow-scripts" srcDoc={html}/>
         </>
     );
 };
