@@ -4,12 +4,11 @@ import {useState, useEffect, useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {unpkgPathPlugin} from './plugins/unpkg-path-plugin';
 import {fetchPlugin} from "./plugins/fetch-plugin";
-
+import CodeEditor from "./components/code-editor";
 
 const App = () => {
     // const ref = useRef<any>();
     const [input, setInput] = useState('');
-    const [code, setCode] = useState('');
     const iframe = useRef<any>();
 
 
@@ -34,6 +33,9 @@ const App = () => {
     }, []);
 
     const onClick = () => {
+
+        iframe.current.srcdoc = html;
+
         esbuild.build({
             entryPoints: ['index.js'],
             bundle: true,
@@ -59,7 +61,14 @@ const App = () => {
        <div id="root"></div>
        <script>
        window.addEventListener('message',(event)=>{
-           eval(event.data)
+           try {
+                eval(event.data);
+           } catch (err) {
+            const root = document.querySelector('#root');
+           root.innerHTML = '<div> <h4>Runtime Error: </h4>' + err + '</div>'
+           console.log(err);
+           }
+      
        },false)
         </script>
         </body>
@@ -68,12 +77,12 @@ const App = () => {
 
     return (
         <>
+            <CodeEditor/>
             <textarea value={input} onChange={(e) => setInput(e.target.value)}></textarea>
             <div>
                 <button onClick={onClick}>Submit</button>
             </div>
-            <pre>{code}</pre>
-            <iframe ref={iframe} sandbox="allow-scripts" srcDoc={html}/>
+            <iframe title="code preview" ref={iframe} sandbox="allow-scripts" srcDoc={html}/>
         </>
     );
 };
