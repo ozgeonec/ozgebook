@@ -1,73 +1,67 @@
 import React from "react";
-import * as esbuild from 'esbuild-wasm';
 import {useState, useEffect} from 'react';
 import 'bulmaswatch/superhero/bulmaswatch.min.css';
-import {unpkgPathPlugin} from '../bundler/plugins/unpkg-path-plugin';
-import {fetchPlugin} from "../bundler/plugins/fetch-plugin";
 import CodeEditor from "./code-editor";
 import Preview from "./preview";
-// import bundle from './bundler';
+import ResizableComp from "./resizableComp";
+import Bundle from "../bundler";
+
 
 const CodeCell = () => {
     // const ref = useRef<any>();
     const [input, setInput] = useState('');
     const [code, setCode] = useState('');
+    const [err, setErr] = useState('');
 
     useEffect(() => {
-        try {
-            esbuild.build({
-                entryPoints: ['index.js'],
-                bundle: true,
-                write: false,
-                plugins: [unpkgPathPlugin(), fetchPlugin(input)]
-            });
-        } catch (error) {
-            if (error instanceof Error && error.message.includes('initialize')) {
-                esbuild.initialize({
-                    worker: false,
-                    wasmURL: '/esbuild.wasm',
-                });
-            } else {
-                throw error;
-            }
-        }
-    }, []);
 
-    const onClick = async () => {
+        const timer = setTimeout(async () => {
+            const output = await Bundle(input);
+            setCode(output.code);
+            setErr(output.err);
+        }, 750);
 
-        // const output = await bundle(input);
+        return () => {
+            clearTimeout(timer);
+        };
+        // const buildCode = async () => {
+        //     try {
+        //         const result = await esbuild.build({
+        //             entryPoints: ['index.js'],
+        //             bundle: true,
+        //             write: false,
+        //             plugins: [unpkgPathPlugin(), fetchPlugin(input)]
+        //         });
+        //         setCode(result.outputFiles[0].text);
+        //     } catch (error) {
+        //         if (error instanceof Error && error.message.includes('initialize')) {
+        //             esbuild.initialize({
+        //                 worker: false,
+        //                 wasmURL: '/esbuild.wasm',
+        //             });
+        //         } else {
+        //             throw error;
+        //         }
+        //     }
+        // };
         //
-        // console.log('out', output)
-        // // @ts-ignore
-        // setCode(output);
-
-        esbuild.build({
-            entryPoints: ['index.js'],
-            bundle: true,
-            write: false,
-            plugins: [unpkgPathPlugin(), fetchPlugin(input)]
-
-        }).then((result: any) => {
-            setCode(result.outputFiles[0].text);
-
-
-            // try {
-            //     eval(result.outputFiles[0].text);
-            // } catch (err) {
-            //     alert(err);
-            // }
-        });
-    };
+        // let timer = setTimeout(buildCode, 1000);
+        //
+        // return () => {
+        //     clearTimeout(timer);
+        // };
+    }, [input]);
 
 
     return (
-        <>
-            <CodeEditor initialValue={'const a= 1'} onChange={(value) => setInput(value)}/>
-            <div>
-                <button onClick={onClick}>Submit</button>
+        <ResizableComp direction='vertical'>
+            <div style={{height: '100%', display: 'flex', flexDirection: 'row'}}>
+                <ResizableComp direction='horizontal'>
+                    <CodeEditor initialValue={'const a = 1'} onChange={(value) => setInput(value)}/>
+                </ResizableComp>
+                <Preview code={code} bundlingStatus={err}/>
             </div>
-            <Preview code={code}/>
-        </>
+        </ResizableComp>
     );
 };
 

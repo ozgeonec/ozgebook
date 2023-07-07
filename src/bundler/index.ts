@@ -2,36 +2,41 @@ import * as esbuild from 'esbuild-wasm';
 import {unpkgPathPlugin} from './plugins/unpkg-path-plugin';
 import {fetchPlugin} from "./plugins/fetch-plugin";
 
-
-export default  (rawCode: string) => {
-
+const Bundle = async (rawCode: string) => {
     let result: any;
 
     try {
-         esbuild.build({
+        const res = await esbuild.build({
             entryPoints: ['index.js'],
             bundle: true,
             write: false,
             plugins: [unpkgPathPlugin(), fetchPlugin(rawCode)]
-        }).then((res) => {
-            result = res.outputFiles[0].text;
-            // console.log('hhj', res)
         });
+        return {
+            code: res.outputFiles[0].text,
+            err: ''
+        }
+        // result = res.outputFiles[0].text;
+
     } catch (error) {
         if (error instanceof Error && error.message.includes('initialize')) {
-             esbuild.initialize({
+            esbuild.initialize({
                 worker: false,
                 wasmURL: '/esbuild.wasm',
             });
+            return {
+                code: '',
+                err: error.message
+            }
         } else {
-            throw error;
+            return {
+                code: '',
+                //@ts-ignore
+                err: error.message
+            }
         }
     }
-
-    // console.log(result)
-
-
-    // console.log('res', result.outputFiles[0].text)
-    // return result.outputFiles[0].text;
-    return result;
+    // return result;
 };
+
+export default Bundle;
