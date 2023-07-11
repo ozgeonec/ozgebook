@@ -16,12 +16,12 @@ const TextEditor: React.FC = () => {
             }
             console.log('element clicked is not inside the element');
             setEditing(false);
-        }
+        };
         document.addEventListener('click', listener, {capture: true});
 
         return () => {
             document.removeEventListener('click', listener, {capture: true});
-        }
+        };
     }, []);
 
     if (editing) {
@@ -37,7 +37,6 @@ const TextEditor: React.FC = () => {
             <div className='card-content'>
                 <MDEditor.Markdown source={value}/>
             </div>
-
         </div>
     );
 
