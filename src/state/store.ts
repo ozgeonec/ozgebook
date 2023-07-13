@@ -6,7 +6,7 @@ import {ActionType} from "./action-types";
 export const store = createStore(reducers, {}, applyMiddleware(thunk));
 
 
-//Manual Testing Redux Store
+//Manually Testing Redux Store
 store.dispatch({
     type: ActionType.INSERT_CELL_BEFORE,
     payload: {

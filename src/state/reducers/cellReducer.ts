@@ -19,7 +19,7 @@ const initialState: CellsState = {
     data: {}
 }
 
-const reducer = produce((state: CellsState = initialState, action: Action): CellsState | undefined => {
+const reducer = produce((state: CellsState = initialState, action: Action) => {
     switch (action.type) {
         case ActionType.MOVE_CELL:
             const {direction} = action.payload;
@@ -50,10 +50,13 @@ const reducer = produce((state: CellsState = initialState, action: Action): Cell
             }
 
             return state;
+
         case ActionType.UPDATE_CELL:
             const {id, content} = action.payload;
             state.data[id].content = content;
             return state;
+
+        //this would be the case without 'immer'
         // return {
         //     ...state,
         //     data: {
@@ -71,7 +74,7 @@ const reducer = produce((state: CellsState = initialState, action: Action): Cell
         default:
             return state;
     }
-});
+}, initialState);
 
 const randomId = () => {
     return Math.random().toString(36).substring(2, 5);
