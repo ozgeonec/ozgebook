@@ -2,15 +2,18 @@ import React from "react";
 import {createRoot} from 'react-dom/client';
 import 'bulmaswatch/superhero/bulmaswatch.min.css';
 import {Provider} from 'react-redux';
-// import CodeCell from "./components/code-cell";
-import TextEditor from "./components/text-editor";
 import {store} from "./state";
+import CellList from "./components/cell-list";
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
 
 const App = () => {
 
     return (
         <Provider store={store}>
-            <TextEditor/>
+            <div>
+                <CellList />
+            </div>
         </Provider>
     );
 };
